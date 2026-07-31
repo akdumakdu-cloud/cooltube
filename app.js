@@ -10,7 +10,6 @@ let currentSection = 'grid';
 let sidebarIndex = 0;
 let currentVideos = [];
 
-// Fetches securely through Vercel's built-in proxy layer (Bypasses CORS entirely)
 async function fetchYouTubeFeed(query = '') {
     grid.innerHTML = '<p class="loading-text">Loading live YouTube feed...</p>';
     
@@ -19,9 +18,17 @@ async function fetchYouTubeFeed(query = '') {
 
     try {
         const res = await fetch(targetUrl);
-        if (!res.ok) throw new Error('Proxy routing error');
+        if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
         
-        const rawData = await res.json();
+        const textData = await res.text();
+        let rawData;
+        try {
+            rawData = JSON.parse(textData);
+        } catch (parseErr) {
+            console.error("Non-JSON response received:", textData.substring(0, 150));
+            throw new Error('Proxy returned invalid payload format');
+        }
+
         const items = Array.isArray(rawData) ? rawData : (rawData.items || []);
         
         currentVideos = items.map(item => ({
@@ -30,13 +37,13 @@ async function fetchYouTubeFeed(query = '') {
             id: item.videoId || (item.url ? item.url.split('v=')[1] : ''),
             thumb: item.videoThumbnails && item.videoThumbnails.length > 0 
                 ? item.videoThumbnails[0].url 
-                : `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`
+                : `https://i.ytimg.com/vi/${item.videoId || 'default'}/hqdefault.jpg`
         })).filter(v => v.id).slice(0, 15);
 
         renderGrid();
     } catch (error) {
-        console.error(error);
-        grid.innerHTML = '<p class="loading-text">Unable to load feed. Check deployment build.</p>';
+        console.error("Fetch execution failed:", error);
+        grid.innerHTML = `<p class="loading-text">Feed Error: ${error.message}. Check deployment routes.</p>`;
     }
 }
 
@@ -179,5 +186,4 @@ document.addEventListener('keydown', (e) => {
     updateFocus();
 });
 
-// Initialize on start
 fetchYouTubeFeed();
