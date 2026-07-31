@@ -7,53 +7,84 @@ let menuFocusIndex = 0;
 let loginFocusIndex = 0;
 let searchFocusIndex = 0;
 let COLUMNS = 3;
-let isNavigating = false; // Prevents D-pad spam from locking up TV CPU
+let isNavigating = false; 
 
-// --- FAILSAFE API LOGIC --- //
+// --- DUAL-ENGINE BACKEND FAILSAFE --- //
+// Layer 1: Piped API pool
 const PIPED_INSTANCES = [
-    'https://pipedapi.kavin.rocks',      // Official Primary
-    'https://pipedapi.adminforge.de',    // Germany
-    'https://api.piped.yt',              // Global Backup
-    'https://pipedapi.drgns.space',      // US Backup
-    'https://pipedapi.owo.si',           // Europe Backup
-    'https://pipedapi.ducks.party',      // US Backup 2
-    'https://piped-api.codespace.cz',    // Czechia Backup
-    'https://piped-api.privacy.com.de'   // Germany Backup 2
+    'https://pipedapi.kavin.rocks',
+    'https://pipedapi.adminforge.de',
+    'https://api.piped.yt',
+    'https://pipedapi.drgns.space'
 ];
-let activeApiHost = PIPED_INSTANCES[0];
 
-// Silent failover fetch wrapper
+// Layer 2: Invidious API pool (Extremely stable alternative backend)
+const INVIDIOUS_INSTANCES = [
+    'https://invidious.privacyredirect.com',
+    'https://vid.priv.au',
+    'https://inv.nadeko.net',
+    'https://invidious.perennialte.ch'
+];
+
+let activeHost = PIPED_INSTANCES[0];
+let useInvidious = false; // Automatically flips to true if Piped pool fails completely
+
+// Universal cross-engine fetch wrapper
 async function fetchWithFailover(endpoint, options = {}) {
-    try {
-        const response = await fetch(`${activeApiHost}${endpoint}`, options);
-        if (response.ok) return await response.json();
-        if (response.status === 401 || response.status === 403) throw new Error('AuthError');
-        throw new Error('ServerError');
-    } catch (e) {
-        if (e.message === 'AuthError') throw e; 
-        console.warn(`Host ${activeApiHost} failed. Initiating automated failover sequence...`);
-        
+    // Phase 1: Try Piped Network
         for (let host of PIPED_INSTANCES) {
-            if (host === activeApiHost) continue; 
             try {
-                console.log(`Attempting fallback: ${host}`);
-                const fallbackResponse = await fetch(`${host}${endpoint}`, options);
-                if (fallbackResponse.ok) {
-                    activeApiHost = host; 
-                    console.log(`Failover successful. New active host: ${activeApiHost}`);
-                    return await fallbackResponse.json();
+                const res = await fetch(`${host}${endpoint}`, options);
+                if (res.ok) {
+                    useInvidious = false;
+                    activeHost = host;
+                    return await res.json();
                 }
-            } catch (err) {
-                console.warn(`Fallback ${host} is also unreachable.`);
+            } catch (e) {
+                console.warn(`Piped host ${host} failed. Trying next...`);
             }
         }
-        throw new Error('All Piped fallback servers are currently unreachable.');
+
+    console.warn("All Piped servers down. Shifting backend engine to Invidious API pool...");
+
+    // Phase 2: Fallback to Invidious Network (Normalizes data structure instantly)
+    for (let host of INVIDIOUS_INSTANCES) {
+        try {
+            let invEndpoint = endpoint;
+            // Map Piped routes to Invidious REST equivalents
+            if (endpoint.includes('/trending')) invEndpoint = '/api/v1/trending?region=US';
+            else if (endpoint.includes('/search?q=')) invEndpoint = endpoint.replace('/search?q=', '/api/v1/search?q=');
+            else if (endpoint.includes('/feed')) invEndpoint = '/api/v1/popular'; // Invidious fallback feed mapping
+
+            const res = await fetch(`${host}${invEndpoint}`, options);
+            if (res.ok) {
+                useInvidious = true;
+                activeHost = host;
+                const rawData = await res.json();
+                
+                // Normalize Invidious JSON array response to match app structure
+                if (useInvidious && Array.isArray(rawData)) {
+                    return rawData.map(item => ({
+                        title: item.title,
+                        uploaderName: item.author,
+                        thumbnail: item.videoThumbnails ? item.videoThumbnails[0].url : '',
+                        url: `/watch?v=${item.videoId}`,
+                        type: 'stream'
+                    }));
+                }
+                return rawData;
+            }
+        } catch (e) {
+            console.warn(`Invidious host ${host} failed. Trying next...`);
+        }
     }
+
+    throw new Error('All backend API nodes (Piped & Invidious) are completely offline.');
 }
 
 // --- DATA LOGIC --- //
 async function loadVideos(type = 'trending', query = '') {
-    grid.innerHTML = '<p class="loading">Loading videos...</p>';
+    grid.innerHTML = '<p class="loading">Connecting to decentralized nodes...</p>';
     gridFocusIndex = 0; 
     
     let endpoint = '/trending?region=US';
@@ -79,29 +110,22 @@ async function loadVideos(type = 'trending', query = '') {
         
         // RAM SAFEGUARD: Streams only, limit 18 items
         const safeData = videos.filter(v => v.type === 'stream' || !v.type).slice(0, 18);
+        
+        if (safeData.length === 0) throw new Error("Empty dataset received");
         renderGrid(safeData);
     } catch (error) {
         console.error(error);
-        if (error.message === 'AuthError') {
-            grid.innerHTML = '<p class="loading">Authentication expired. Please log in again.</p>';
-        } else {
-            grid.innerHTML = '<p class="loading">Network failure. All backend servers are down.</p>';
-        }
+        grid.innerHTML = '<p class="loading">Network failure. All global API mirrors are unreachable.</p>';
     }
 }
 
 function renderGrid(videos) {
     grid.innerHTML = '';
-    if (videos.length === 0) {
-        grid.innerHTML = '<p class="loading">No videos found.</p>';
-        return;
-    }
-    
     videos.forEach((video) => {
         const card = document.createElement('div');
         card.className = 'video-card focusable-grid';
         card.dataset.url = video.url;
-        // decoding="async" prevents JS thread blocking during image parse
+        // decoding="async" prevents thread locks on weak TV hardware
         card.innerHTML = `
             <img class="thumbnail" src="${video.thumbnail}" alt="Thumbnail" loading="lazy" decoding="async">
             <div class="info">
@@ -116,14 +140,14 @@ function renderGrid(videos) {
 
 function recordHistory(videoUrl) {
     const token = localStorage.getItem('pipedToken');
-    if (!token) return;
+    if (!token || useInvidious) return; // History sync runs via Piped engine
     
     const videoId = videoUrl.split('v=')[1];
     fetchWithFailover('/history', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': token },
         body: JSON.stringify({ videoId })
-    }).catch(e => console.log("History sync failed silently in background", e));
+    }).catch(e => {});
 }
 
 async function submitLogin() {
@@ -190,10 +214,8 @@ function updateFocus() {
         el.classList.add('focused');
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         
-        if (el.tagName !== 'INPUT') {
-            if (document.activeElement && document.activeElement.tagName === 'INPUT') {
-                document.activeElement.blur();
-            }
+        if (el.tagName !== 'INPUT' && document.activeElement && document.activeElement.tagName === 'INPUT') {
+            document.activeElement.blur();
         }
     }
 }
@@ -241,17 +263,15 @@ function handleEnterKey() {
         if (!activeItems[gridFocusIndex]) return;
         const videoUrl = activeItems[gridFocusIndex].dataset.url;
         recordHistory(videoUrl);
-        window.location.href = `https://piped.video${videoUrl}`;
+        // Playback target respects active backend engine layout
+        const playerBase = useInvidious ? activeHost : 'https://piped.video';
+        window.location.href = `${playerBase}${videoUrl}`;
     }
 }
 
 document.addEventListener('keydown', (e) => {
-    // 1. HARDWARE THROTTLE: Prevent fast D-Pad presses from freezing the TV
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        if (isNavigating) {
-            e.preventDefault();
-            return;
-        }
+        if (isNavigating) { e.preventDefault(); return; }
         isNavigating = true;
         setTimeout(() => { isNavigating = false; }, 150);
     }
