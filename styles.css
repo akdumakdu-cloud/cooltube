@@ -3,149 +3,121 @@ body {
     color: #ffffff;
     font-family: sans-serif;
     margin: 0;
-    padding: 2vw;
-    overflow-x: hidden;
+    padding: 0;
+    overflow: hidden;
 }
 
-.header {
-    text-align: center;
-    margin-bottom: 3vh;
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
 }
 
-.header h1 {
-    margin: 0 0 1vh 0;
-    font-size: 2.5vw; 
+.sidebar {
+    width: 20vw;
+    background: #181818;
+    padding: 2vh 2vw;
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+    border-right: 1px solid #333;
 }
 
-.header p {
-    color: #aaaaaa;
-    margin: 0;
+.sidebar h2 {
+    color: #3ea6ff;
+    font-size: 2vw;
+    margin-top: 0;
+}
+
+.nav-item {
+    padding: 1.5vh 1vw;
     font-size: 1.2vw;
+    border-radius: 0.5vw;
+    cursor: pointer;
+    background: #212121;
 }
 
-.loading {
-    text-align: center;
-    grid-column: 1 / -1;
-    font-size: 1.5vw;
-    color: #888888;
+.main-content {
+    flex: 1;
+    padding: 3vh 3vw;
+    overflow-y: auto;
 }
 
-/* Fluid Video Grid */
 .video-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(30%, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2vw;
     width: 100%;
 }
 
-/* GPU Accelerated Video Cards */
 .video-card {
     background-color: #212121;
     border-radius: 0.8vw;
     overflow: hidden;
     border: 0.3vw solid transparent;
     cursor: pointer;
-    
-    /* Hardware Acceleration & Fluidity Hacks */
-    transition: transform 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out;
-    transform: translateZ(0); 
-    will-change: transform; 
-    backface-visibility: hidden; 
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .thumbnail {
     width: 100%;
     aspect-ratio: 16 / 9;
-    background-color: #333333;
+    background-color: #333;
     object-fit: cover;
     display: block;
 }
 
-.info { padding: 1.2vw; }
+.info {
+    padding: 1vw;
+}
 
 .title {
-    font-size: 1.4vw;
+    font-size: 1.1vw;
     font-weight: 600;
-    margin: 0 0 0.5vw 0;
+    margin: 0 0 0.5vh 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    line-height: 1.3;
 }
 
-.channel {
-    color: #aaaaaa;
-    font-size: 1.1vw;
-    margin: 0;
-}
-
-/* Modal Overlays for TV Settings */
-.modal-overlay {
+/* Modal Player */
+.player-modal {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0,0,0,0.95);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 2000;
+}
+
+.player-wrapper {
+    width: 85vw;
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#videoIframe {
+    width: 100%;
+    height: 100%;
+    border-radius: 0.5vw;
+}
+
+.close-hint {
+    text-align: center;
+    color: #aaa;
+    font-size: 1vw;
+    margin-top: 1vh;
 }
 
 .hidden { display: none !important; }
 
-.modal-content {
-    background: #212121;
-    padding: 3vw;
-    border-radius: 1vw;
-    text-align: center;
-    width: 35vw;
-    box-shadow: 0 2vh 4vh rgba(0,0,0,0.5);
-}
-
-.modal-content h2 { margin-top: 0; font-size: 2vw; }
-
-.menu-item {
-    padding: 1.5vw;
-    margin: 1vw 0;
-    background: #333;
-    border-radius: 0.5vw;
-    font-size: 1.5vw;
-    border: 0.3vw solid transparent;
-    transition: transform 0.15s ease, background-color 0.15s ease;
-}
-
-/* Input Fields */
-input[type="text"], input[type="password"] {
-    width: 90%;
-    padding: 1.5vw;
-    margin: 1vw 0;
-    font-size: 1.5vw;
-    background: #333;
-    color: white;
-    border: 0.3vw solid transparent;
-    border-radius: 0.5vw;
-    outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.15s ease;
-}
-
-/* Universal TV Focus State */
+/* Focus State */
 .focused {
-    border-color: #ffffff;
-    transform: scale(1.05);
-    background-color: #2a3a4e;
-    box-shadow: 0 1vh 2vh rgba(0,0,0,0.8);
-}
-
-.video-card.focused .channel { color: #3ea6ff; }
-input.focused { border-color: #3ea6ff; background: #444; }
-
-@media (max-width: 768px) {
-    .video-grid { grid-template-columns: 1fr; }
-    .header h1 { font-size: 5vw; }
-    .header p { font-size: 3vw; }
-    .title { font-size: 4vw; }
-    .channel { font-size: 3vw; }
-    .modal-content { width: 80vw; }
-    .menu-item, input[type="text"], input[type="password"] { font-size: 4vw; }
+    border-color: #3ea6ff !important;
+    transform: scale(1.04);
+    background-color: #2a3a4e !important;
 }
