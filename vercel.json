@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/proxy/:path*",
+      "destination": "https://vid.priv.au/api/v1/:path*"
+    }
+  ]
+}

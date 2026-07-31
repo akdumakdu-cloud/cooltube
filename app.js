@@ -6,55 +6,38 @@ const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 
 let currentFocusIndex = 0;
-let currentSection = 'grid'; // 'sidebar', 'search', 'grid', 'player'
+let currentSection = 'grid'; 
 let sidebarIndex = 0;
 let currentVideos = [];
 
-// Stable Invidious/Piped public nodes with direct JSON fallbacks to guarantee live data fetching
+// Fetches securely through Vercel's built-in proxy layer (Bypasses CORS entirely)
 async function fetchYouTubeFeed(query = '') {
-    grid.innerHTML = '<p class="loading-text">Fetching live data from YouTube nodes...</p>';
+    grid.innerHTML = '<p class="loading-text">Loading live YouTube feed...</p>';
     
-    // Stable primary data provider list using direct instance endpoints
-    const endpoints = query 
-        ? [
-            `https://invidious.privacyredirect.com/api/v1/search?q=${encodeURIComponent(query)}`,
-            `https://vid.priv.au/api/v1/search?q=${encodeURIComponent(query)}`
-          ]
-        : [
-            `https://invidious.privacyredirect.com/api/v1/trending?region=US`,
-            `https://vid.priv.au/api/v1/trending?region=US`
-          ];
+    const endpoint = query ? `search?q=${encodeURIComponent(query)}` : `trending?region=US`;
+    const targetUrl = `/api/proxy/${endpoint}`;
 
-    let rawData = null;
-    for (let url of endpoints) {
-        try {
-            const res = await fetch(url);
-            if (res.ok) {
-                rawData = await res.json();
-                break;
-            }
-        } catch (e) {
-            console.warn("Node failed, switching...");
-        }
+    try {
+        const res = await fetch(targetUrl);
+        if (!res.ok) throw new Error('Proxy routing error');
+        
+        const rawData = await res.json();
+        const items = Array.isArray(rawData) ? rawData : (rawData.items || []);
+        
+        currentVideos = items.map(item => ({
+            title: item.title || "Untitled Video",
+            channel: item.author || item.uploaderName || "Unknown Channel",
+            id: item.videoId || (item.url ? item.url.split('v=')[1] : ''),
+            thumb: item.videoThumbnails && item.videoThumbnails.length > 0 
+                ? item.videoThumbnails[0].url 
+                : `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`
+        })).filter(v => v.id).slice(0, 15);
+
+        renderGrid();
+    } catch (error) {
+        console.error(error);
+        grid.innerHTML = '<p class="loading-text">Unable to load feed. Check deployment build.</p>';
     }
-
-    if (!rawData) {
-        grid.innerHTML = '<p class="loading-text">Unable to fetch live feed. Check network configuration.</p>';
-        return;
-    }
-
-    // Normalize data structure seamlessly
-    const items = Array.isArray(rawData) ? rawData : (rawData.items || []);
-    currentVideos = items.map(item => ({
-        title: item.title || "Untitled Video",
-        channel: item.author || item.uploaderName || "Unknown Channel",
-        id: item.videoId || (item.url ? item.url.split('v=')[1] : ''),
-        thumb: item.videoThumbnails && item.videoThumbnails.length > 0 
-            ? item.videoThumbnails[0].url 
-            : `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`
-    })).filter(v => v.id).slice(0, 15);
-
-    renderGrid();
 }
 
 function renderGrid() {
@@ -77,7 +60,6 @@ function renderGrid() {
             </div>
         `;
         
-        // Instant Click and Touch Support for Desktop/Mobile/TV Virtual Cursors
         card.addEventListener('click', () => {
             currentFocusIndex = index;
             currentSection = 'grid';
@@ -152,7 +134,7 @@ document.addEventListener('keydown', (e) => {
             currentFocusIndex = 0;
         }
         if (e.key === 'Enter') {
-            if (sidebarIndex === 0) fetchYouTubeFeed(); // Trending
+            if (sidebarIndex === 0) fetchYouTubeFeed(); 
             if (sidebarIndex === 1) {
                 currentSection = 'search';
                 updateFocus();
@@ -197,5 +179,5 @@ document.addEventListener('keydown', (e) => {
     updateFocus();
 });
 
-// Initialize on start with live trending feed
+// Initialize on start
 fetchYouTubeFeed();
