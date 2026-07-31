@@ -1,12 +1,13 @@
 const grid = document.getElementById('videoGrid');
 const playerModal = document.getElementById('playerModal');
 const videoIframe = document.getElementById('videoIframe');
+const closeBtn = document.getElementById('closeBtn');
 
 let currentFocusIndex = 0;
-let currentSection = 'sidebar'; // 'sidebar', 'grid', 'player'
+let currentSection = 'grid'; // Default directly to grid so items are immediately reachable
 let sidebarIndex = 0;
 
-// Curated reliable feed structure ensuring zero hard dependency on dead third-party JSON nodes
+// High-speed static feeds with active working YouTube IDs
 const STATIC_FEEDS = {
     trending: [
         { title: "Big Buck Bunny (HD Simulation)", channel: "Blender Foundation", id: "aqz-KE-bpKQ", thumb: "https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg" },
@@ -20,7 +21,9 @@ function renderTrending() {
     STATIC_FEEDS.trending.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'video-card grid-item';
+        if (index === 0) card.classList.add('focused');
         card.dataset.id = item.id;
+        
         card.innerHTML = `
             <img class="thumbnail" src="${item.thumb}" loading="lazy" decoding="async">
             <div class="info">
@@ -28,6 +31,14 @@ function renderTrending() {
                 <p class="channel" style="color:#aaa; font-size:0.9vw; margin:0;">${item.channel}</p>
             </div>
         `;
+        
+        // DIRECT CLICK/TOUCH LISTENER FOR DESKTOP & MOBILE
+        card.addEventListener('click', () => {
+            currentFocusIndex = index;
+            updateFocus();
+            openPlayer(item.id);
+        });
+
         grid.appendChild(card);
     });
     updateFocus();
@@ -50,7 +61,6 @@ function updateFocus() {
 
 function openPlayer(videoId) {
     currentSection = 'player';
-    // Use privacy-enhanced embedded source framework
     videoIframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0`;
     playerModal.classList.remove('hidden');
 }
@@ -61,6 +71,9 @@ function closePlayer() {
     currentSection = 'grid';
     updateFocus();
 }
+
+// Click listener on close button for touch devices
+closeBtn.addEventListener('click', closePlayer);
 
 document.addEventListener('keydown', (e) => {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) {
@@ -108,5 +121,5 @@ document.addEventListener('keydown', (e) => {
     updateFocus();
 });
 
-// Initialize
+// Initialize on load
 renderTrending();

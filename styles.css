@@ -109,8 +109,12 @@ body {
 .close-hint {
     text-align: center;
     color: #aaa;
-    font-size: 1vw;
-    margin-top: 1vh;
+    font-size: 1.2vw;
+    margin-top: 1.5vh;
+    cursor: pointer;
+    padding: 1vh;
+    background: #222;
+    border-radius: 0.4vw;
 }
 
 .hidden { display: none !important; }

@@ -13,16 +13,10 @@
             <h2>CleanTube</h2>
             <div class="nav-item focusable active" data-view="trending">Trending</div>
             <div class="nav-item focusable" data-view="search">Search</div>
-            <div class="nav-item focusable" data-view="bookmarks">Saved Videos</div>
         </div>
 
         <!-- Main Content Area -->
         <div class="main-content">
-            <div id="searchBarContainer" class="search-container hidden">
-                <input type="text" id="searchInput" class="focusable-input" placeholder="Type search query...">
-                <div id="searchSubmit" class="search-btn focusable-input">Go</div>
-            </div>
-            
             <div class="video-grid" id="videoGrid">
                 <!-- Dynamic Content -->
             </div>
@@ -32,8 +26,8 @@
     <!-- Video Player Modal Overlay -->
     <div id="playerModal" class="player-modal hidden">
         <div class="player-wrapper">
-            <iframe id="videoIframe" src="" frameborder="0" allowfullscreen></iframe>
-            <div class="close-hint">Press Back or Menu to Close Player</div>
+            <iframe id="videoIframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <div class="close-hint" id="closeBtn">Click Here or Press Back/Menu to Close Player</div>
         </div>
     </div>
 
