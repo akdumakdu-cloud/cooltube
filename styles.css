@@ -14,9 +14,9 @@ body {
 }
 
 .sidebar {
-    width: 20vw;
+    width: 22vw;
     background: #181818;
-    padding: 2vh 2vw;
+    padding: 3vh 2vw;
     display: flex;
     flex-direction: column;
     gap: 2vh;
@@ -25,22 +25,54 @@ body {
 
 .sidebar h2 {
     color: #3ea6ff;
-    font-size: 2vw;
+    font-size: 2.2vw;
     margin-top: 0;
 }
 
 .nav-item {
-    padding: 1.5vh 1vw;
+    padding: 1.5vh 1.2vw;
     font-size: 1.2vw;
     border-radius: 0.5vw;
     cursor: pointer;
     background: #212121;
+    border: 0.2vw solid transparent;
 }
 
 .main-content {
     flex: 1;
     padding: 3vh 3vw;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+}
+
+.search-box {
+    display: flex;
+    gap: 1vw;
+    align-items: center;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 1.2vh 1vw;
+    font-size: 1.2vw;
+    background: #212121;
+    border: 0.2vw solid #444;
+    color: #fff;
+    border-radius: 0.4vw;
+    outline: none;
+}
+
+.search-submit {
+    padding: 1.2vh 2vw;
+    font-size: 1.2vw;
+    background: #3ea6ff;
+    color: #000;
+    font-weight: bold;
+    border: none;
+    border-radius: 0.4vw;
+    cursor: pointer;
 }
 
 .video-grid {
@@ -82,6 +114,20 @@ body {
     overflow: hidden;
 }
 
+.channel {
+    color: #aaa;
+    font-size: 0.9vw;
+    margin: 0;
+}
+
+.loading-text {
+    color: #888;
+    font-size: 1.3vw;
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-top: 10vh;
+}
+
 /* Modal Player */
 .player-modal {
     position: fixed;
@@ -109,7 +155,7 @@ body {
 .close-hint {
     text-align: center;
     color: #aaa;
-    font-size: 1.2vw;
+    font-size: 1.1vw;
     margin-top: 1.5vh;
     cursor: pointer;
     padding: 1vh;

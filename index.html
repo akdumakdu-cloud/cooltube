@@ -3,22 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CleanTube TV Client</title>
+    <title>CoolTube Pro Client</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar / Navigation Panel -->
+        <!-- Sidebar Navigation -->
         <div class="sidebar">
-            <h2>CleanTube</h2>
-            <div class="nav-item focusable active" data-view="trending">Trending</div>
-            <div class="nav-item focusable" data-view="search">Search</div>
+            <h2>CoolTube</h2>
+            <div class="nav-item focusable active" data-action="trending">Trending</div>
+            <div class="nav-item focusable" data-action="search-focus">Search</div>
         </div>
 
-        <!-- Main Content Area -->
+        <!-- Main Content Panel -->
         <div class="main-content">
+            <div id="searchContainer" class="search-box">
+                <input type="text" id="searchInput" class="focusable-input" placeholder="Type to search YouTube...">
+                <button id="searchBtn" class="focusable-input search-submit">Search</button>
+            </div>
+            
             <div class="video-grid" id="videoGrid">
-                <!-- Dynamic Content -->
+                <p class="loading-text">Loading live YouTube feed...</p>
             </div>
         </div>
     </div>
@@ -27,7 +32,7 @@
     <div id="playerModal" class="player-modal hidden">
         <div class="player-wrapper">
             <iframe id="videoIframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-            <div class="close-hint" id="closeBtn">Click Here or Press Back/Menu to Close Player</div>
+            <div class="close-hint" id="closeBtn">Close Player (Press Back / Menu / Click Here)</div>
         </div>
     </div>
 
