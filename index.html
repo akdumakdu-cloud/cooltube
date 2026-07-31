@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoolTube Web Client - Final Build</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>CoolTube</h1>
+        <p>Use D-Pad to Navigate &bull; Press OK to Select &bull; Press Option/Menu Key for Tools</p>
+    </div>
+    
+    <div class="video-grid" id="videoGrid">
+        <p class="loading">Loading videos...</p>
+    </div>
+
+    <!-- Main Options Menu -->
+    <div id="optionsMenu" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Options Menu</h2>
+            <div class="menu-item focusable-menu" data-action="trending">Trending (Public)</div>
+            <div class="menu-item focusable-menu" data-action="feed">Subscriptions Feed</div>
+            <div class="menu-item focusable-menu" data-action="search">Search Videos</div>
+            <div class="menu-item focusable-menu" data-action="login" id="loginLabel">Login to Piped</div>
+            <div class="menu-item focusable-menu" data-action="close">Close Menu</div>
+        </div>
+    </div>
+
+    <!-- Login Menu -->
+    <div id="loginMenu" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Piped Account Login</h2>
+            <input type="text" id="username" class="focusable-login" placeholder="Username">
+            <input type="password" id="password" class="focusable-login" placeholder="Password">
+            <div class="menu-item focusable-login" id="loginBtn">Submit</div>
+            <div class="menu-item focusable-login" id="cancelLoginBtn">Cancel</div>
+        </div>
+    </div>
+
+    <!-- Search Menu -->
+    <div id="searchMenu" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Search YouTube</h2>
+            <input type="text" id="searchInput" class="focusable-search" placeholder="Type query here...">
+            <div class="menu-item focusable-search" id="searchBtn">Search</div>
+            <div class="menu-item focusable-search" id="cancelSearchBtn">Cancel</div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
